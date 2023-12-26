@@ -30,6 +30,7 @@ apt update
 apt install ansible
 mkdir /etc/ansible
 # 复制整个k8s_kubeadm_install到管理机
+sudo su 
 cd k8s_kubeadm_install
 # 修改hosts节点名,分组不能修改(请注意: 主机名，ansible节点，/etc/hosts要保持一致)
 vim files/ansible/hosts
@@ -193,7 +194,9 @@ root@master1:/etc/apt/sources.list.d# apt-cache madison kubeadm
 <strong>必须确认vars.yaml变量是否修改</strong>control_plane_endpoint需要与hosts文件格式一致
 
 ```bash
-# 默认只安装集群基础功能
+# 默认只安装集群基础功能(安装过程分为三步，第一步会重启所有节点，重启后再次进入目录运行相同命令)
+sudo su 
+cd k8s_kubeadm_install
 ansible-playbook playbooks/main.yaml
 # 选装其他插件,harbor需要修改ansible/hosts中分组和/etc/hosts解析
 ansible-playbook playbooks/main.yaml -t [dashboard | harbor | metrics | prometheus]

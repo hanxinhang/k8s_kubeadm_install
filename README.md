@@ -199,5 +199,5 @@ sudo su
 cd k8s_kubeadm_install
 ansible-playbook playbooks/main.yaml
 # 选装其他插件,harbor需要修改ansible/hosts中分组和/etc/hosts解析
-ansible-playbook playbooks/main.yaml -t [dashboard | harbor | metrics | prometheus]
+ansible-playbook playbooks/main.yaml -t [metrics | harbor | dashboard | prometheus]
 ```

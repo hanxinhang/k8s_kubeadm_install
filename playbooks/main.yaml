@@ -1,5 +1,6 @@
 - name: 第一步初始化系统
   hosts: k8s
+  gather_facts: no
   vars_files: ../files/vars.yaml
   tasks: 
     - name: 1:创建安装缓存目录
@@ -165,6 +166,7 @@
 
 - name: 第二步 安装 kubeadmin
   hosts: k8s
+  gather_facts: no
   vars_files: ../files/vars.yaml
   tasks:
     - name: 1:检查install_kubeadmin.lock文件是否存在
@@ -279,6 +281,7 @@
 
 - name: 第三步 初始化集群,添加工作节点
   hosts: localhost
+  gather_facts: no
   vars_files: ../files/vars.yaml
   tags: after_install
   tasks:
@@ -443,3 +446,9 @@
       debug:
         msg: |
           你不会看到任何错误,可以执行../files下的test-ingress.yaml验证网络:kubectl apply -f files/test-ingress.yaml, kubectl get pod,svc,ing
+
+- name: 第四步[选装] 安装metrics
+  import_playbook: ./metrics_server_install.yaml
+  tags:
+    - metrics
+    - never

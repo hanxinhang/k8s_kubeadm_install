@@ -1,0 +1,54 @@
+- name: 创建metrics-server资源对象
+  hosts: localhost
+  gather_facts: no
+  tasks:
+  - name: 创建metrics-server资源对象
+    shell: kubectl apply -f ../files/metrics/components.yaml
+
+- name: 开启聚合API
+  hosts: masters
+  gather_facts: no
+  tasks:
+  - name: 开启聚合API
+    lineinfile:
+      path: /etc/kubernetes/manifests/kube-apiserver.yaml
+      insertafter: "private"
+      line: "    - --enable-aggregator-routing=true"
+
+  - name: 重启kubelet
+    service:
+      name: kubelet
+      state: restarted
+
+- name: 为kubelet签发证书
+  hosts: k8s
+  gather_facts: no
+  tasks:
+  - name: 在最后一行插入
+    lineinfile:
+      path: /var/lib/kubelet/config.yaml
+      insertafter: EOF
+      line: "serverTLSBootstrap: true"
+
+  - name: 重启kubelet
+    service:
+      name: kubelet
+      state: restarted
+
+- name: 签发证书
+  hosts: manage_node
+  gather_facts: no
+  tasks:
+  - name: 暂停5秒
+    pause:
+      seconds: 5  
+
+  - name: 获取新发证书名
+    shell: kubectl get certificatesigningrequests.certificates.k8s.io | grep kubelet-serving | awk '$6=="Pending" {print $1}'
+    register: Pending_csr
+    failed_when: false
+
+  - name: 正式签发证书
+    shell: kubectl certificate approve {{ item }}
+    with_items: "{{ Pending_csr.stdout_lines }}"
+    when: Pending_csr.stdout_lines | length > 0
